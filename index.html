@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Blockly Code Flasher To Arduino</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="http://www.w3schools.com/w3css/3/w3.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!--<script src="https://codebender.cc/embed/compilerflasher.js" type="text/javascript"></script>-->
+	<script src="compilerflasher.js" type="text/javascript"></script>
+	<!--<script src="https://codebender.cc/walkthrough/lawnchair-0.6.4.min.js?v56"></script>-->
+</head>
+<body class="w3-container">
+	<h1>Blockly4Arduino Flash Code</h1>
+    <textarea id="editor" class="w3-light-grey" rows="27" cols="80">
+/*
+Blink
+Turns on an LED on for one second, then off for one second, repeatedly.
+
+This example code is in the public domain.
+*/
+
+// Pin 13 has an LED connected on most Arduino boards.
+// give it a name:
+int led = 13;
+
+// the setup routine runs once when you press reset:
+void setup() {
+	// initialize the digital pin as an output.
+	pinMode(led, OUTPUT);
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+	digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+	delay(1000);               // wait for a second
+	digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+	delay(1000);               // wait for a second
+}
+    </textarea>
+    <br/><br/>
+
+	<select id="cb_cf_ports"></select>	
+	<select id="cb_cf_boards"></select><br/><br/>
+    <button id="cb_cf_verify_btn" class="w3-button">Compile the Code!</button>
+	<button id="cb_cf_flash_btn" class="w3-button">Upload to the board!</button>
+	<button id="connect" class="w3-button">Test</button>
+	<br/><br/>
+	<p id="cb_cf_operation_output"></p>
+
+    <label><b>Event messages:</b></label>
+    <div id="event_msg"></div>
+
+    <script type="text/javascript">
+	    function getFiles(){
+            return {"sketch.ino": $("#editor").val() }
+        }
+
+        $(document).ready(function(){
+			// Initialize class
+            compilerflasher = new compilerflasher(getFiles);
+
+			// compilerflasher.on(eventName, Callback);           
+			compilerflasher.on("pre_verify", function(){
+                $("#event_msg").append('pre_verify event fired!<br/>')
+            });
+
+            compilerflasher.on("verification_succeed", function(binary_size){
+                $("#event_msg").append('verification_succeed event fired! Sketch size: '+binary_size+"<br/>")
+            });
+
+            compilerflasher.on("verification_failed", function(error_output){
+                $("#event_msg").append("verification_failed event fired! \nCompilation error: <pre>"+error_output+"</pre><br/>")
+            });
+
+			compilerflasher.on("plugin_notification", function(message){
+				$("#event_msg").append("plugin notification:<pre>"+message+"</pre><br/>")			
+			});
+
+			compilerflasher.on("plugin_running", function(){
+				$("#event_msg").append("plugin running<br/>")			
+			});
+        });
+    </script>
+	<script>
+		document.addEventListener('DOMContentLoaded', event => {
+			let button = document.getElementById('connect');
+
+			button.addEventListener('click', async() => {
+				var device;
+				var vendorId = 0x2341;
+
+				navigator.usb.requestDevice({ filters: [{ vendorId: vendorId }] })
+				.then(selectedDevice => {
+				   device = selectedDevice;
+					console.log(device.productName);
+					console.log(device.manufacturerName);
+				   return device.open(); // Begin a session.
+				 })
+				.then(() => device.selectConfiguration(1)) // Select configuration #1 for the device.
+				.then(() => device.claimInterface(2)) // Request exclusive control over interface #2.
+				.then(() => device.controlTransferOut({
+					requestType: 'class',
+					recipient: 'interface',
+					request: 0x22,
+					value: 0x01,
+					index: 0x02})) // Ready to receive data
+				.then(() => device.transferIn(5, 64)) // Waiting for 64 bytes of data from endpoint #5.
+				.then(result => {
+				  let decoder = new TextDecoder();
+				  console.log('Received: ' + decoder.decode(result.data));
+				})
+				.catch(error => { console.log(error); });
+			});
+		});
+	</script>
+</body>
+</html>
