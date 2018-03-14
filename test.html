@@ -114,7 +114,7 @@ void loop(){
 					"files":[
 					  {
 						 "filename":"hello.ino",
-						 "content": $("#editor").val()
+						 "content": $("#codeTextarea").val()
 					  }
 				   ],
 				   "libraries":{},
@@ -129,12 +129,13 @@ void loop(){
 				};		
 
 				$.ajax({
-					url:"http://localhost/blockly4arduino/v1",
+					url:"http://localhost:8000/blockly4arduino/v1",
 					type:"POST",
 					dataType:"json",
 					//contentType:"application/json",
 					//cache: false,
 					//headers: {"Cache-Control":"no-cache"},
+					//headers: {'Access-Control-Allow-Origin':'*'},
 					data: JSON.stringify(data),
 					success: function(data) {
 						console.log("Success: Finished compiling hex-file");
