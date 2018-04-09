@@ -18,16 +18,16 @@
 			textarea {
 				margin: 5px;			
 			}
-			p {
-				margin: 5px;			
-			}
-			button {
+			p, a, label, button, input {
 				margin: 5px;			
 			}
 		</style>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" type="text/javascript"></script>
 	</head>
 	<body>
+		<div>
+			<a href="https://chrome.google.com/webstore/detail/allow-control-allow-origi/nlfbmbojpeacfghkpbjhddihlkkiljbi">Install chrome CORS extension here.</a>
+		</div>
 		<div>
 			<label>Arduino board:
 				<select id="boardType">
@@ -37,7 +37,6 @@
 				</select>
 			</label>
 		</div>
-		<br/>
 
 		<div>
 			<p>Choose a file(.hex) to upload to an arduino</p>
@@ -47,10 +46,10 @@
 					<input id="fileInput" type="file"/>
 				</label>
 			  
-			  <input type="submit" id="uploadFileBtn" value="Upload!"/>
+			  <input type="submit" id="uploadFileBtn" value="Upload file"/>
 			</form>
 		</div>
-		<br/>
+
 		<div>
 			<p>Fill in your code to upload to an arduino</p>
 			<textarea id="codeTextarea" rows="20" cols="80" id="editor">
@@ -65,8 +64,12 @@ void loop(){
 	delay(1000);
 }
 			</textarea><br/>
+			<select id="compilerType">
+				<option value="https://codebender.cc/utilities/compile/">Codebender Compiler</option>
+				<option value="http://localhost:8000/blockly4arduino/v1">Local Compiler</option>
+			</select>
 			<button id="verifyTxtBtn" onclick="verifytxt()">Verify Code</button>
-			<button id="uploadTxtBtn" onclick="uploadtxt()">Upload</button>
+			<button id="uploadTxtBtn" onclick="uploadtxt()">Upload Code</button>
 			<button id="copyToClipboardBtn" onclick="copyToClipboard()">Copy to Clipboard</button>
 			<p id="lblStatus">Status: ...</p>
 		</div>
@@ -75,6 +78,7 @@ void loop(){
 			var uploadFileForm = document.getElementById('uploadFileForm');
 			var fileInput = document.getElementById('fileInput');
 			var boardType = document.getElementById('boardType');
+			var compilerType = document.getElementById('compilerType');
 			var verifyBtn = document.getElementById('verifyTxtBtn');
 			var uploadFileBtn = document.getElementById('uploadFileBtn');
 			var lblStatus = document.getElementById('lblStatus');
@@ -134,7 +138,7 @@ void loop(){
 				};		
 
 				$.ajax({
-					url:"http://localhost:8000/blockly4arduino/v1",
+					url: compilerType.value,
 					type:"POST",
 					dataType:"json",
 					data: JSON.stringify(data),
